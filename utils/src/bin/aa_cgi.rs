@@ -21,6 +21,10 @@ each font that the CGI program's font libraray can render.
 
 An `aa-action: render` request will use the supplied information and return
 a textual result: the rendered image.
+
+You can see this program in action at
+[`https://d2718.net/ascii_art/`](https://d2718.net/ascii_art/)
+
 */
 use std::collections::HashMap;
 use std::io::{BufReader, Cursor};

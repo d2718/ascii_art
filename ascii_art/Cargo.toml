@@ -30,7 +30,8 @@ default = ["bmp", "gif", "ico", "jpeg", "png", "pnm", "tiff", "webp"]
 # * "rayon"
 
 dds      = ["image/dds"]
-dxt      = ["image/hdr"]
+# `image` crate support for the dxt format has been deprecated
+# dxt      = ["image/hdr"]
 farbfeld = ["image/farbfeld"]
 hdr      = ["image/hdr"]
 openexr  = ["image/openexr"]

@@ -63,6 +63,37 @@ let image = ascii_art::Image::auto(&mut image_file).unwrap();
 let mut stdout = std::io::stdout();
 ascii_art::write(&image, &font, &mut stdout).unwrap();
 ```
+
+# Features
+
+`ascii_art` depends on the [`image`](https://docs.rs/image/latest/image/)
+crate for decoding image files and resizing images. `image` supports
+quite a few image formats, several of which are somewhat unusual or
+special-purpose. `ascii_art` disables these less-common formats by default,
+but they can be explicitly enabled (or the more-common formats can be
+explicitly disabled) as features.
+
+The following features (and formats) are enabled by default, and must
+be explicitly disabled (with the `--no-default-features` option or
+`default_features = false` in your manifest):
+  * `bmp`
+  * `gif`
+  * `ico`
+  * `jpeg`
+  * `png`
+  * `pnm`
+  * `tiff`
+  * `webp`
+
+The following features must be explicitly enabled:
+  * `dds` DirectDraw Surface container format
+  * `farbfeld`
+  * `hdr` Radiance HDR images
+  * `openexr`
+  * `tga` TARGA (Truevision TGA)
+
+Finally, enabling the `rayon` feature will enable `image`'s support for
+multithreaded JPEG decoding.
 */
 
 use std::cmp::Ordering;

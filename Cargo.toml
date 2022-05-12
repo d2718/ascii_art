@@ -1,0 +1,11 @@
+[workspace]
+
+members = [
+  "ascii_art",
+  "img2ascii",
+  "utils"
+]
+
+default-members = [
+  "ascii_art"
+]

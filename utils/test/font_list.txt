@@ -1,0 +1,9 @@
+Liberation Mono, 9 10 12 18
+Inconsolata, 9 10 12 18
+Terminus, 9 10 12
+TerminusTTF, 9 10 12
+White Rabbit, 9 10 12 18
+Lucida Console, 9 10 12 18
+DejaVu Sans Mono, 9 10 12 18
+Droid Mono, 9 10 12 18
+

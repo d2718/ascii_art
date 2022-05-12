@@ -1,0 +1,34 @@
+ Anonymous Pro
+ Aurulent Sans Mono
+ Courier
+ Courier 10 Pitch
+ DejaVu Sans Mono
+ Droid Sans Mono
+ Fantasque Sans Mono
+ Fira Mono
+ FreeMono
+ Hack
+ Inconsolata
+ Iosevka
+ Iosevka Term
+ Liberation Mono
+ Luxi Mono
+ Nimbus Mono L
+ Nimbus Mono PS
+ NK57 Monospace
+ Noto Mono
+ Noto Sans SignWriting
+ November
+ Onuava
+ ProggyCleanTT
+ ProggyCleanTT CE
+ ProggySmallTT
+ ProggySquareTT
+ ProggyTinyTT
+ Source Code Pro
+ Targa MS
+ Targa MS Hand
+ Telegrama
+ Ubuntu Mono
+ Unispace
+ White Rabbit

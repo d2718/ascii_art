@@ -1,0 +1,48 @@
+[package]
+name = "ascii_art"
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+ab_glyph = "^0.2"
+serde = "^1.0"
+serde_derive = "^1.0"
+serde_json = "^1.0"
+
+[dependencies.image]
+version = "^0.24"
+default-features = false
+
+[features]
+default = ["bmp", "gif", "ico", "jpeg", "png", "pnm", "tiff", "webp"]
+
+# The `image` crate supports several less-common image types, as well as
+# multithreaded JPEG decoding, all of which I have disabled to reduce
+# binary size. To enable extra image formats, you can choose from the
+# following features to enable:
+#
+# * "tga", "hdr", "dxt", "dds", "openexr", "farbfeld"
+#
+# To enable multi-threaded JPEG decoding (which also sucks in the
+# `rayon` crate):
+#
+# * "rayon"
+
+dds      = ["image/dds"]
+dxt      = ["image/hdr"]
+farbfeld = ["image/farbfeld"]
+hdr      = ["image/hdr"]
+openexr  = ["image/openexr"]
+rayon    = ["image/jpeg_rayon"]
+tga      = ["image/tga"]
+
+# defaults
+bmp  = ["image/bmp"]
+gif  = ["image/gif"]
+ico  = ["image/ico"]
+jpeg = ["image/jpeg"]
+png  = ["image/png"]
+pnm  = ["image/pnm"]
+tiff = ["image/tiff"]
+webp = ["image/webp"]

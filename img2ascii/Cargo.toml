@@ -1,0 +1,11 @@
+[package]
+name = "img2ascii"
+version = "0.1.0"
+edition = "2021"
+description = "ASCII art generating command-line filter"
+license = "MIT"
+
+[dependencies]
+ascii_art = { path = "../ascii_art" }
+clap = { version = "^3.1", features = ["derive"] }
+fontconfig = { version = "^0.5", features = ["dlopen"] }

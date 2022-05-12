@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ASCII Art Service</title>
+  <link rel="stylesheet" href="https://d2718.net/default.css">
+  <script defer src="script.js"></script>
+  
+  <style>
+div#output {
+  background-color: black;
+  color: white;
+  font-family: monospace;
+  white-space: pre;
+  border: 1px solid black;
+  line-height: 1em;
+  padding: 1ex;
+  margin: 1em 0;
+}
+
+form#the_form {
+  display: inline-grid;
+  grid-template-columns: auto, auto;
+  grid-template-rows: auto;
+}
+form#the_form > * { margin: 0.75ex; }
+form#the_form > select,
+form#the_form > button,
+form#the_form > input { font-family: monospace; }
+form#the_form > *:nth-child(odd) {
+  justify-self: end;
+  grid-column: 1 / span 1;
+}
+form#the_form > *:nth-child(even) {
+  justify-self: start;
+  grid-column: 2 / span 1;
+}
+
+div#status,
+div#error {
+  position: fixed;
+  top: 1em; right: 1em;
+  z-index: 2;
+  max-width: 40vw;
+  display: none;
+  border-radius: 1ex;
+  background-color: lilac;
+  color: #222;
+}
+  </style>
+</head>
+
+<body>
+<div id="status"></div>
+<div id="error"></div>
+
+<div id="head" class="sidepad">
+  <h1>ASCII Art</h1>
+  <p>Service Test Harness</p>
+</div>
+<hr class="headsep">
+<div id="body" class="sidepad">
+
+  <form id="the_form" name="the_form">
+    <label for="image_input">select an image file:</label>
+    <input id="image_input" type="file" name="file">
+  
+    <label for="font_input">font:</label>
+    <select id="font_input" type="select" name="font">
+      <option value="mono">Mono</option>
+      <option value="courier">Courier</option>
+    </select>
+  
+    <label for="size_input">size</label>
+    <select id="size_input" list="font_size_list" name="size">
+      <option value="10">10</option>
+      <option value="12">12</option>
+    </select>
+  
+    <button id="submit_button" type="button">
+      <label for="submit_button">submit</label>
+    </button>
+    
+    <datalist id="font_family_list">
+    </datalist>
+    <datalist id="font_size_list">
+    </datalist>
+  </form>
+
+  <div id="output"></div>
+
+</div>
+
+</body>
+</html>

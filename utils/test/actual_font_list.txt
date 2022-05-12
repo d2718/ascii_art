@@ -1,0 +1,15 @@
+Aurulent Sans Mono, 8 9 10 12 16 18 24 36
+Courier, 8 9 10 12 16 18 24 36
+DejaVu Sans Mono, 8 9 10 12 16 18 24 36
+Droid Sans Mono, 8 9 10 12 16 18 24 36
+Fira Mono, 8 9 10 12 16 18 24 36
+Hack, 8 9 10 12 16 18 24 36
+Inconsolata, 8 9 10 12 16 18 24 36
+Iosevka Term, 8 9 10 12 16 18 24 36
+Liberation Mono, 8 9 10 12 16 18 24 36
+Noto Mono, 8 9 10 12 16 18 24 36
+Noto Sans Mono, 8 9 10 12 16 18 24 36
+ProggyCleanTT, 8 9 10 12 16 18 24 36
+Source Code Pro, 8 9 10 12 16 18 24 36
+Ubuntu Mono, 8 9 10 12 16 18 24 36
+White Rabbit, 8 9 10 12 16 18 24 36

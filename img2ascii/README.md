@@ -13,18 +13,19 @@ ASCII" (the characters returned by `ascii_art::printable_ascii()`).
 
 ```text
 $ img2ascii -h
-ascii_art
+img2ascii 0.2.0
+Dan <dx2718@gmail.com>
 Command-line utility to turn image files into ASCII art.
-
 USAGE:
     img2ascii [OPTIONS]
-
 OPTIONS:
     -d, --dest <DEST>        output path [default: write to stdout]
     -f, --font <FONT>        font to use [default: mono]
     -h, --help               Print help information
+    -i, --invert             target inverted (dark on light) text
     -p, --pixels <PIXELS>    font size in pixels [default: 12.0]
     -s, --source <SOURCE>    image path [default: read from stdin]
+    -V, --version            Print version information
 ```
 
 `img2ascii` dynamically loads and queries Fontconfig at run time; it will
@@ -60,3 +61,13 @@ or squished. For example, of this writing, I use
 [Iosevka](https://github.com/be5invis/Iosevka) as my terminal font;
 Iosevka is a tall, narrow font, so images rendered in most other
 target fonts will appear too tall and narrow.
+
+### Why is the default light-on-dark text and dark-on-light text considered _inverted_? Isn't most text dark-on-light? Are you some kind of edgelord dark-mode chauvanist trying to force your niche preference on the rest of us?
+
+While I do generally prefer dark text on a light background, I specificially
+chose light-on-dark to be the "forward" direction because that's the way
+most pixel values are treated on the computer screen. A value of 0 tends to
+be "no light" (and thus minimum brightness), and a value of 255 (or 65535
+or 1.0 or whatever the maximum value of the format is) tends to be "full
+light" (and thus maximum brightness). Thus, glyphs will less coverage are
+treated as "darker", and glyphs with more coverage are treated as "lighter".

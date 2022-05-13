@@ -458,6 +458,9 @@ impl FontData {
 
     /**
     Return the character mapped to for a pixel with an intensity `val`.
+    This is for rendering _light_ text on a _dark_ background (what these
+    days is commonly called "night mode" text). For _dark_ text on a
+    _light_ background "day mode), use the `.pixel_inv()` method.
     Intensities are assumed to be between 0.0 and 1.0; intensities outside
     that range will result in the minimum or maximum coverage character,
     respectively.
@@ -471,6 +474,26 @@ impl FontData {
             Err(n) => *n,
         };
 
+        self.values[n].chr
+    }
+    
+    /**
+    Return the character mapped to for a pixel with intensity `1.0 - val`.
+    This is for rendering _dark_ text on a _light_ background, as opposed
+    to the `.pixel()` method, which is for rendering _light_ text on a
+    _dark_ background. As with `.pixel()`, intensities are assumed to be
+    between 0.0 and 1.0; intensities outside that range will result in the
+    minimum or maximum coverage character, respectively.
+    */
+    pub fn pixel_inv(&self, val: f32) -> char {
+        let val = 1.0 - (val + self.fudge_factor);
+        let dummy = Char { chr: ' ', val };
+        
+        let n = match &self.values.binary_search(&dummy) {
+            Ok(n) => *n,
+            Err(n) => *n,
+        };
+        
         self.values[n].chr
     }
 
@@ -570,6 +593,9 @@ impl Image {
 /**
 Given some `FontData`, write the `Image` as text to the `writer`.
 
+This is for writing light text on a dark background (that is, pixel
+intensity values are positively correlated with luminosity.)
+
 This function looks at the geometry of the `font` and the geometry of the
 `Image` and tries to output a rectangle of text that will match the size
 of the original image. Depending on how the text is viewed, characters and
@@ -587,6 +613,51 @@ pub fn write<W: Write>(img: &Image, font: &FontData, writer: W) -> Result<(), Er
     for row in resized.rows() {
         for p in row {
             let g = font.pixel(p.0[0]);
+            if let Err(e) = write!(&mut writer, "{}", g) {
+                let err = format!("{}", &e);
+                return Err(Error::IOError(err));
+            }
+        }
+        if let Err(e) = write!(&mut writer, "\n") {
+            let err = format!("{}", &e);
+            return Err(Error::IOError(err));
+        }
+    }
+
+    if let Err(e) = writer.flush() {
+        Err(Error::IOError(format!("{}", &e)))
+    } else {
+        Ok(())
+    }
+}
+
+/**
+Given some `FontData`, write the `Image` as text to the `writer`.
+
+This is for writing _dark_ text on a _light_ background (that is, pixel
+intensity values are _negatively_ correlated with luminosity.)
+
+This function looks at the geometry of the `font` and the geometry of the
+`Image` and tries to output a rectangle of text that will match the size
+of the original image. Depending on how the text is viewed, characters and
+lines may have different amounts of spacing between them, resulting in
+an imperfect size match.
+*/
+pub fn write_inverted<W: Write>(
+    img: &Image,
+    font: &FontData,
+    writer: W
+) -> Result<(), Error> {
+    let (img_wf, img_hf) = img.geometry();
+    let (font_wf, font_hf) = font.geometry();
+    let w = (img_wf / font_wf) as u32;
+    let h = (img_hf / font_hf) as u32;
+    let mut writer = BufWriter::new(writer);
+
+    let resized = resize(&img.buff, w, h, FilterType::Nearest);
+    for row in resized.rows() {
+        for p in row {
+            let g = font.pixel_inv(p.0[0]);
             if let Err(e) = write!(&mut writer, "{}", g) {
                 let err = format!("{}", &e);
                 return Err(Error::IOError(err));

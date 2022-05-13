@@ -2,8 +2,9 @@
 A command-line filter utility for turning image files into ASCII art.
 
 ```text
-user@system:/path$ img2ascii -h
-ascii_art
+$ img2ascii -h
+img2ascii 0.2.0
+Dan <dx2718@gmail.com>
 Command-line utility to turn image files into ASCII art.
 
 USAGE:
@@ -13,8 +14,10 @@ OPTIONS:
     -d, --dest <DEST>        output path [default: write to stdout]
     -f, --font <FONT>        font to use [default: mono]
     -h, --help               Print help information
+    -i, --invert             target inverted (dark on light) text
     -p, --pixels <PIXELS>    font size in pixels [default: 12.0]
     -s, --source <SOURCE>    image path [default: read from stdin]
+    -V, --version            Print version information
 ```
 
 By default this will read image data from stdin and write the rendered
@@ -131,6 +134,10 @@ struct Args {
     /// font size in pixels
     #[clap(short, long, default_value = "12.0")]
     pixels: f32,
+    
+    /// target inverted (dark on light) text
+    #[clap(short, long)]
+    invert: bool,
 }
 
 /**
@@ -156,6 +163,8 @@ struct Cfg {
     dest: Box<dyn Write>,
     /// data from specified (or default) font
     font: FontData,
+    /// target dark-on-light (rather than light-on-dark) text
+    invert: bool,
 }
 
 /**
@@ -228,8 +237,10 @@ fn configure() -> Result<Cfg, ErrorShim> {
         Ok(Ok(fd)) => fd,
         Ok(Err((fd, _))) => fd,
     };
+    
+    let invert = args.invert;
 
-    Ok(Cfg { source, dest, font })
+    Ok(Cfg { source, dest, font, invert })
 }
 
 fn main() -> Result<(), ErrorShim> {
@@ -237,7 +248,12 @@ fn main() -> Result<(), ErrorShim> {
 
     let img_reader = BufReader::new(cfg.source);
     let image = Image::auto(img_reader)?;
-
-    ascii_art::write(&image, &cfg.font, cfg.dest)?;
+    
+    if cfg.invert {
+        ascii_art::write_inverted(&image, &cfg.font, cfg.dest)?;
+    } else {
+        ascii_art::write(&image, &cfg.font, cfg.dest)?;
+    }
+    
     Ok(())
 }

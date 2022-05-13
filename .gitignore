@@ -1,3 +1,6 @@
 # Typical rustlang .gitignore content.
 /target/
 Cargo.lock
+
+# aa_cgi deploy script
+utils/dep.bash

@@ -110,7 +110,11 @@ Struct used by clap to generate the CLI parsing code, and also
 to hold the arguments passed from the command line.
 */
 #[derive(Parser, Debug)]
-#[clap(about = "Command-line utility to turn image files into ASCII art.")]
+#[clap(
+    name = "img2ascii",
+    version,
+    author,
+    about = "Command-line utility to turn image files into ASCII art.")]
 struct Args {
     /// image path [default: read from stdin]
     #[clap(short, long)]

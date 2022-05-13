@@ -1,6 +1,8 @@
 [package]
 name = "ascii_art"
 version = "0.2.0"
+authors = ["Dan <dx2718@gmail.com"]
+description = "a library for rendering images as text"
 edition = "2021"
 license = "MIT"
 

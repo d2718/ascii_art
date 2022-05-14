@@ -66,6 +66,13 @@ function submit() {
   console.log(request_object);
   
   clear(OUTPUT);
+  
+  if(data.get("invert") == "false") {
+    OUTPUT.setAttribute("class", "normal-color");
+  } else if(data.get("invert") == "true") {
+    OUTPUT.setAttribute("class", "inverted-color");
+  }
+  
   add_output("sent request...");
   
   fetch(URI, request_object)

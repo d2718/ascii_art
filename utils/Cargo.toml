@@ -1,6 +1,6 @@
 [package]
 name = "utils"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Dan <dx2718@gmail.com"]
 description = "ASCII art-related utilitiy programs"
 edition = "2021"

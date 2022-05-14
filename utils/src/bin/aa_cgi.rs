@@ -12,6 +12,8 @@ Responds to two types of requests:
       + `name="font"` (the font family name to use)
       + `name="size"` (the pixel size of the font to use)
       + `name="file"` (the image file to ASCII-ize)
+    If a part with `name="invert"` exists and is true, then the image will be
+    rendered for black text on a white background.
 
 (It also respons to an OPTIONS request, but I'm not sure if that's necessary.)
 
@@ -196,6 +198,7 @@ fn render_response(req: &dumb_cgi::Request) -> ! {
     let mut font: Option<String> = None;
     let mut size: Option<u16>    = None;
     let mut data: Option<&[u8]>  = None;
+    let mut invert: bool         = false;
     
     let body_parts = match req.body() {
         Body::Multipart(v) => v,
@@ -234,6 +237,11 @@ fn render_response(req: &dumb_cgi::Request) -> ! {
                 },
                 Some("file") => {
                     data = Some(&part.body); 
+                },
+                Some("invert") => {
+                     if "true" == String::from_utf8_lossy(&part.body).to_string() {
+                        invert = true;
+                    }
                 },
                 _ => { /* Don't do anything. Why is this field being sent? */ },
             }
@@ -276,9 +284,20 @@ fn render_response(req: &dumb_cgi::Request) -> ! {
     };
     
     let mut buff: Vec<u8> = Vec::new();
-    if let Err(e) = ascii_art::write(&image, &font_data, &mut buff) {
-        let estr = format!("Error writing text image: {}", &e);
-        error_response(500, &estr);
+    if invert {
+        if let Err(e) = ascii_art::write_inverted(
+            &image, &font_data, &mut buff
+        ) {
+            let estr = format!("Error writing text image: {}", &e);
+            error_response(500, &estr);
+        }
+    } else {
+        if let Err(e) = ascii_art::write(
+            &image, &font_data, &mut buff
+        ) {
+            let estr = format!("Error writing text image: {}", &e);
+            error_response(500, &estr);
+        }
     }
     
     // `ascii_art::write()`'s output is guaranteed to be valid UTF-8

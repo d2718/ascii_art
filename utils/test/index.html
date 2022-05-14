@@ -8,8 +8,6 @@
   
   <style>
 div#output {
-  background-color: black;
-  color: white;
   font-family: monospace;
   white-space: pre;
   border: 1px solid black;
@@ -47,6 +45,16 @@ div#error {
   background-color: lilac;
   color: #222;
 }
+
+.normal-color {
+  background-color: #112;
+  color: #ffe;
+}
+
+.inverted-color {
+  background-color: #ffe;
+  color: #112; 
+}
   </style>
 </head>
 
@@ -76,6 +84,16 @@ div#error {
       <option value="10">10</option>
       <option value="12">12</option>
     </select>
+    
+    <label for="invert_false">
+      light text on a dark background
+    </label>
+    <input type="radio" name="invert" value="false" id="invert_false"
+           checked>
+    <label for="invert_true">
+      dark text on a light background
+    </label>
+    <input type="radio" name="invert" value="true" id="invert_true">
   
     <button id="submit_button" type="button">
       <label for="submit_button">submit</label>
@@ -87,7 +105,7 @@ div#error {
     </datalist>
   </form>
 
-  <div id="output"></div>
+  <div id="output" class="normal-color"></div>
 
 </div>
 

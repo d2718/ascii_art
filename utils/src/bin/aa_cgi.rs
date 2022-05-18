@@ -30,6 +30,8 @@ You can see this program in action at
 */
 use std::collections::HashMap;
 use std::io::{BufReader, Cursor};
+
+use dumb_cgi::{Request, EmptyResponse, Body};
 use ascii_art::{FontData, Image};
 
 /// Location of font data library.
@@ -99,16 +101,12 @@ fn error_response(code: u16, message: &str) -> ! {
         message
     );
     
-    print!(
-"Content-type: text/plain\r
-status: {} {}\r,
-Content-length: {}\r
-\r\n{}",
-        code,
-        status_message(code),
-        message.len(),
-        message
-    );
+    EmptyResponse::new(code)
+        .with_content_type("text/plain")
+        .with_body(message)
+        .respond()
+        .unwrap();
+    
     std::process::exit(0);
 }
 
@@ -119,12 +117,12 @@ This may not be strictly necessary, but I don't totally understand all
 the nuances of modern HTTP.
 */
 fn options_response() -> ! {
-    print!(
-"Status: 204 No Content\r\
-Access-Control-Allow-Methods: GET, POST, OPTIONS\r\
-Access-Control-Allow-Headers: aa-action\r\
-\r\n"
-    );
+    EmptyResponse::new(204)
+        .with_header("Access-Control-Allow-Methods", "OPTIONS")
+        .with_header("Access-Control-Allow-Headers", "aa-action")
+        .respond()
+        .unwrap();
+    
     std::process::exit(0);
 }
 
@@ -177,14 +175,18 @@ fn list_response() -> ! {
             error_response(500, &estr);
         },
     };
-    
-    let header = format!(
-"Content-type: text/json\r\nStatus: 200 OK\r\nContent-length: {}\r\n\r\n",
-                          response_data.len()
-    );
-    print!("{}{}", &header, &response_data);
 
-    log::debug!("sending list response:\n{}{}", &header, &response_data);
+    let r = EmptyResponse::new(200)
+        .with_content_type("text/json")
+        .with_body(response_data);
+    
+    log::debug!(
+        "Sending list response. Body:\n{}",
+        // This is okay because ascii_art::write() should only write UTF-8
+        std::str::from_utf8(r.get_body()).unwrap()
+    );
+    
+    r.respond().unwrap();
 
     std::process::exit(0);
 }
@@ -193,8 +195,6 @@ fn list_response() -> ! {
 Respond to a request to render an image,
 */
 fn render_response(req: &dumb_cgi::Request) -> ! {
-    use dumb_cgi::Body;
-    
     let mut font: Option<String> = None;
     let mut size: Option<u16>    = None;
     let mut data: Option<&[u8]>  = None;
@@ -283,37 +283,32 @@ fn render_response(req: &dumb_cgi::Request) -> ! {
         }
     };
     
-    let mut buff: Vec<u8> = Vec::new();
+    let mut r = EmptyResponse::new(200)
+        .with_content_type("text/plain");
+    
     if invert {
         if let Err(e) = ascii_art::write_inverted(
-            &image, &font_data, &mut buff
+            &image, &font_data, &mut r
         ) {
             let estr = format!("Error writing text image: {}", &e);
             error_response(500, &estr);
         }
     } else {
         if let Err(e) = ascii_art::write(
-            &image, &font_data, &mut buff
+            &image, &font_data, &mut r
         ) {
             let estr = format!("Error writing text image: {}", &e);
             error_response(500, &estr);
         }
     }
     
-    // `ascii_art::write()`'s output is guaranteed to be valid UTF-8
-    let buff = String::from_utf8(buff).unwrap();
-    
     log::debug!(
-        "render response: 200 (OK): {} bytes of body.",
-        buff.len()
+        "render response: {}: {} bytes of body.",
+        r.get_status(), r.get_body().len()
     );
     
-    let header = format!(
-"Content-type: text/plain\r\nStatus: 200 OK\r\nContent-length: {}\r\n\r\n",
-        buff.len()
-    );
+    r.respond().unwrap();
     
-    print!("{}{}", &header, &buff);
     std::process::exit(0);
 }
 
@@ -326,9 +321,12 @@ fn main() {
             .open("/home/dan/aa_cgi.log").unwrap()
     ).unwrap();
     
-    let req = match dumb_cgi::Request::new() {
+    let req = match Request::new() {
         Ok(req) => req,
-        Err(_) => error_response(500, "Unable to read the CGI environment."),
+        Err(e) => {
+            e.to_response().respond().unwrap();
+            std::process::exit(0);
+        },
     };
     
     log::debug!("rec'd request: {} {}",
@@ -353,6 +351,4 @@ fn main() {
             }
         }
     }
-    
-    
 }

@@ -14,6 +14,7 @@ div#output {
   line-height: 1em;
   padding: 1ex;
   margin: 1em 0;
+  display: none;
 }
 
 form#the_form {
@@ -40,10 +41,30 @@ div#error {
   top: 1em; right: 1em;
   z-index: 2;
   max-width: 40vw;
+  min-width: 10em;
+  max-height: 50vh;
+  min-height: 5em;
   display: none;
   border-radius: 1ex;
-  background-color: lilac;
+  padding: 1em;
   color: #222;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+div#status {
+  background-color: #cde;
+  border: 1ex solid #678;
+}
+div#error {
+  background-color: #ecd;
+  border: 1ex solid #867;
+}
+
+div#status > *,
+div#error > * {
+  display: inline-block;
+  margin: 1ex;
 }
 
 .normal-color {
@@ -59,8 +80,17 @@ div#error {
 </head>
 
 <body>
-<div id="status"></div>
-<div id="error"></div>
+<div id="status">
+  <img src="message_sm.gif">
+  <p></p>
+</div>
+
+<div id="error">
+  <button id="error_dismiss">
+    <label>&#x274c;</label>
+  </button>
+  <p></p>
+</div>
 
 <div id="head" class="sidepad">
   <h1>ASCII Art</h1>
@@ -69,15 +99,30 @@ div#error {
 <hr class="headsep">
 <div id="body" class="sidepad">
 
+  <div id="output" class="normal-color"></div>
+
   <form id="the_form" name="the_form">
     <label for="image_input">select an image file:</label>
     <input id="image_input" type="file" name="file">
+    
+    <label for="font_server">
+      use server-supplied font metrics
+    </label>
+    <input type="radio" name="font_source" value="server" id="font_server"
+           checked>
+    <label for="font_user">
+      supply my own font file
+    </label>
+    <input type="radio" name="font_source" value="user" id="font_user">
   
     <label for="font_input">font:</label>
     <select id="font_input" type="select" name="font">
       <option value="mono">Mono</option>
       <option value="courier">Courier</option>
     </select>
+    
+    <label for="font_file">font file:</label>
+    <input id="font_file" type="file" name="font_file" disabled>
   
     <label for="size_input">size</label>
     <select id="size_input" list="font_size_list" name="size">
@@ -105,7 +150,6 @@ div#error {
     </datalist>
   </form>
 
-  <div id="output" class="normal-color"></div>
 
 </div>
 

@@ -31,7 +31,7 @@ You can see this program in action at
 use std::collections::HashMap;
 use std::io::{BufReader, Cursor};
 
-use dumb_cgi::{Request, EmptyResponse, Body};
+use dumb_cgi::{Request, EmptyResponse, FullResponse, Body};
 use ascii_art::{FontData, Image};
 
 /// Location of font data library.
@@ -191,11 +191,72 @@ fn list_response() -> ! {
     std::process::exit(0);
 }
 
+fn render_from_server_font(
+    font_name: &str,
+    size: u16,
+    image: &Image,
+    invert: bool
+) -> Result<FullResponse, String> {
+    let fonts = load_library()?;
+        
+    let family = fonts.get(font_name).ok_or(
+        format!("No font data matching \"{}\".", font_name)
+    )?;
+    
+    let font = family.get(&size).ok_or(
+        format!("No data for font \"{}\" at size \"{}\".", font_name, size)
+    )?;
+    
+    let write_f = if invert {
+        ascii_art::write_inverted
+    } else {
+        ascii_art::write
+    };
+    
+    let mut r = EmptyResponse::new(200)
+        .with_content_type("text/plain");
+    
+    write_f(image, font, &mut r).or_else(|e| {
+        Err(format!("Error writing text image: {}", &e))
+    })?;
+    
+    Ok(r)
+}
+
+fn render_from_user_font(
+    font_bytes: &[u8],
+    size: u16,
+    image: &Image,
+    invert: bool
+) -> Result<FullResponse, String> {
+    let chars = ascii_art::printable_ascii();
+    let size = size as f32;
+    let font = FontData::from_font_bytes(font_bytes, size, &chars)
+        .or_else(|e| Err(e.to_string()) )?.unwrap();
+    
+    let write_f = if invert {
+        ascii_art::write_inverted
+    } else {
+        ascii_art::write
+    };
+    
+    let mut r = EmptyResponse::new(200)
+        .with_content_type("text/plain");
+    
+    write_f(image, &font, &mut r).or_else(|e| {
+        Err(format!("Error writing text image: {}", &e))
+    })?;
+    
+    Ok(r)
+}
+
 /**
 Respond to a request to render an image,
 */
 fn render_response(req: &dumb_cgi::Request) -> ! {
-    let mut font: Option<String> = None;
+    let mut font_name: Option<String> = None;
+    let mut font_file: Option<&[u8]>  = None;
+    let mut user_supplied_font: bool = false;
     let mut size: Option<u16>    = None;
     let mut data: Option<&[u8]>  = None;
     let mut invert: bool         = false;
@@ -216,9 +277,15 @@ fn render_response(req: &dumb_cgi::Request) -> ! {
         if let Some(val) = part.headers.get("content-disposition") {
             match field_name_from_content_disposition(val) {
                 Some("font") => {
-                    let font_name = String::from_utf8_lossy(&part.body)
+                    let font = String::from_utf8_lossy(&part.body)
                                         .trim().to_string();
-                    font = Some(font_name);
+                    font_name = Some(font);
+                },
+                Some("font_file") => {
+                    font_file = Some(&part.body);
+                }
+                Some("font_source") => if part.body == "user".as_bytes() {
+                    user_supplied_font = true;
                 },
                 Some("size") => {
                     match std::str::from_utf8(&part.body) {
@@ -248,31 +315,10 @@ fn render_response(req: &dumb_cgi::Request) -> ! {
         }
     }
     
-    let font = font.unwrap_or_else(|| error_response(400, "Missing \"font\" value."));
+    
+    //let font = font.unwrap_or_else(|| error_response(400, "Missing \"font\" value."));
     let size = size.unwrap_or_else(|| error_response(400, "Missing \"size\" value."));
     let data = data.unwrap_or_else(|| error_response(400, "Missing \"file\" value."));
-    
-    let fonts = match load_library() {
-        Ok(map) => map,
-        Err(e) => { error_response(500, &e); },
-    };
-    
-    let font_family = match fonts.get(&font) {
-        Some(map) => map,
-        None => {
-            let estr = format!("No font data matching \"{}\".", &font);
-            error_response(400, &estr);
-        },
-    };
-    
-    let font_data = match font_family.get(&size) {
-        Some(fd) => fd,
-        None => {
-            let estr = format!("No data for font \"{}\" at size \"{}\".",
-                                &font, &size);
-            error_response(400, &estr);
-        },
-    };
     
     let mut image_reader = BufReader::new(Cursor::new(data));
     let image = match Image::auto(&mut image_reader) {
@@ -283,31 +329,74 @@ fn render_response(req: &dumb_cgi::Request) -> ! {
         }
     };
     
-    let mut r = EmptyResponse::new(200)
-        .with_content_type("text/plain");
-    
-    if invert {
-        if let Err(e) = ascii_art::write_inverted(
-            &image, &font_data, &mut r
-        ) {
-            let estr = format!("Error writing text image: {}", &e);
-            error_response(500, &estr);
+    let response = if user_supplied_font {
+        let font_file = font_file.unwrap_or_else(||
+            error_response(400, "Missing \"font_file\" falue.")
+        );
+        
+        match render_from_user_font(&font_file, size, &image, invert) {
+            Ok(r) => r,
+            Err(ref s) => { error_response(500, s); },
         }
     } else {
-        if let Err(e) = ascii_art::write(
-            &image, &font_data, &mut r
-        ) {
-            let estr = format!("Error writing text image: {}", &e);
-            error_response(500, &estr);
+        let font_name = font_name.unwrap_or_else(||
+            error_response(400, "Missing \"font\" value.")
+        );
+        
+        match render_from_server_font(&font_name, size, &image, invert) {
+            Ok(r) => r,
+            Err(s) => { error_response(500, &s); },   
         }
-    }
+    };
+    
+    // let fonts = match load_library() {
+    //     Ok(map) => map,
+    //     Err(e) => { error_response(500, &e); },
+    // };
+    
+    // let font_family = match fonts.get(&font) {
+    //     Some(map) => map,
+    //     None => {
+    //         let estr = format!("No font data matching \"{}\".", &font);
+    //         error_response(400, &estr);
+    //     },
+    // };
+    
+    // let font_data = match font_family.get(&size) {
+    //     Some(fd) => fd,
+    //     None => {
+    //         let estr = format!("No data for font \"{}\" at size \"{}\".",
+    //                             &font, &size);
+    //         error_response(400, &estr);
+    //     },
+    // };
+    
+    
+    // let mut r = EmptyResponse::new(200)
+    //     .with_content_type("text/plain");
+    
+    // if invert {
+    //     if let Err(e) = ascii_art::write_inverted(
+    //         &image, &font_data, &mut r
+    //     ) {
+    //         let estr = format!("Error writing text image: {}", &e);
+    //         error_response(500, &estr);
+    //     }
+    // } else {
+    //     if let Err(e) = ascii_art::write(
+    //         &image, &font_data, &mut r
+    //     ) {
+    //         let estr = format!("Error writing text image: {}", &e);
+    //         error_response(500, &estr);
+    //     }
+    // }
     
     log::debug!(
         "render response: {}: {} bytes of body.",
-        r.get_status(), r.get_body().len()
+        response.get_status(), response.get_body().len()
     );
     
-    r.respond().unwrap();
+    response.respond().unwrap();
     
     std::process::exit(0);
 }

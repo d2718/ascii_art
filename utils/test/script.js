@@ -70,7 +70,6 @@ function obj2map(obj) {
 // Clear any extant status text from the status <div>, set the status text to
 // the supplied `text`, and set the <div> to be visible.
 function set_status(text) {
-  console.log(`setting status: "${text}"`);
   clear(STATUS.p);
   STATUS.p.appendChild(document.createTextNode(text));
   STATUS.div.style.display = "inline-flex";
@@ -78,7 +77,6 @@ function set_status(text) {
 
 // Hide the status <div>.
 function hide_status() {
-  console.log("hiding status");
   STATUS.div.style.display = "none";
 }
 
@@ -153,6 +151,7 @@ function submit(evt) {
   } else if(data.get("invert") == "true") {
     OUTPUT.setAttribute("class", "inverted-color");
   }
+  OUTPUT.style.fontSize = `${data.get("size")}px`;
   
   fetch(URI, request_object)
   .then(r => {
@@ -214,11 +213,12 @@ function populate_choices() {
   
   fetch(URI, request_object)
   .then(r => {
-    console.log(r);
     if(r.status != 200) {
-      add_output(`response status is ${r.status}`);
       r.text()
-      .then(add_output);
+      .then(t => {
+        add_error(`Error fetching font data (${r.status}):\n`);
+        add_error(t);
+      });
     } else {
       r.json()
       .then(m => {

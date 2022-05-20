@@ -13,6 +13,9 @@ This workspace consists of a collection of crates:
 
 See more specific documentation for more specific information.
 
+[`ascii_art` library demonstration](https://d2718.net/ascii_art/): a web
+service that will turn an uploaded image file into a chunk of text.
+
 # License
 
 The original work in this crate is all licensed under

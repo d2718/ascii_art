@@ -1,0 +1,69 @@
+div#output {
+  font-family: monospace;
+  white-space: pre;
+  border: 1px solid black;
+  line-height: 1em;
+  padding: 1ex;
+  margin: 1em 0;
+  display: none;
+}
+
+form#the_form {
+  display: inline-grid;
+  grid-template-columns: auto, auto;
+  grid-template-rows: auto;
+}
+form#the_form > * { margin: 0.75ex; }
+form#the_form > select,
+form#the_form > button,
+form#the_form > input { font-family: monospace; }
+form#the_form > *:nth-child(odd) {
+  justify-self: end;
+  grid-column: 1 / span 1;
+}
+form#the_form > *:nth-child(even) {
+  justify-self: start;
+  grid-column: 2 / span 1;
+}
+
+div#status,
+div#error {
+  position: fixed;
+  top: 1em; right: 1em;
+  z-index: 2;
+  max-width: 40vw;
+  min-width: 10em;
+  max-height: 50vh;
+  min-height: 5em;
+  display: none;
+  border-radius: 1ex;
+  padding: 1em;
+  color: #222;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+div#status {
+  background-color: #cde;
+  border: 1ex solid #678;
+}
+div#error {
+  background-color: #ecd;
+  border: 1ex solid #867;
+}
+
+div#status > *,
+div#error > * {
+  display: inline-block;
+  margin: 1ex;
+}
+
+.normal-color {
+  background-color: #112;
+  color: #ffe;
+}
+
+.inverted-color {
+  background-color: #ffe;
+  color: #112; 
+}

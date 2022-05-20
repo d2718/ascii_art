@@ -34,7 +34,7 @@ The produced JSON data will have the following format:
         9: FontData { ... },
         ...etc.
     },
-    
+
     ...etc.
 }
 ```
@@ -50,8 +50,8 @@ use std::ffi::CString;
 use std::fs::File;
 use std::io::{BufRead, Write};
 
-use fontconfig::{Fontconfig, Pattern};
 use ascii_art::*;
+use fontconfig::{Fontconfig, Pattern};
 
 const DEFAULT_OUTFILE: &str = "fonts.json";
 
@@ -87,26 +87,27 @@ tuple (or an explanatory error).
 fn parse_input_line(line: &str) -> Result<(String, Vec<u16>), String> {
     let line_split: Vec<&str> = line.split(',').collect();
     let (name, size_string) = match line_split[..] {
-        [name, size_string] => {
-            (name.trim(), size_string)
-        },
-        _ => { return Err("improper input format".to_string()); },
+        [name, size_string] => (name.trim(), size_string),
+        _ => {
+            return Err("improper input format".to_string());
+        }
     };
-    
-    if name.len() == 0 {
+
+    if name.is_empty() {
         return Err("no valid font name".to_string());
     }
-    
-    let sizes: Vec<u16> = size_string.split(char::is_whitespace)
+
+    let sizes: Vec<u16> = size_string
+        .split(char::is_whitespace)
         .map(|s| s.parse::<u16>())
         .filter(|res| res.is_ok())
         .map(|res| res.unwrap())
         .collect();
-    
+
     if sizes.is_empty() {
         return Err("no valid font sizes".to_string());
     }
-    
+
     Ok((String::from(name), sizes))
 }
 
@@ -115,10 +116,7 @@ Given a user-supplied font name, return a tuple of
 (actual font name, font file path) for fontconfig's best guess at a match
 (or an explanatory string if unsuccessful).
 */
-fn get_fc_font_info(
-    fc: &Fontconfig,
-    name: &str,
-) -> Result<(String, String), &'static str> {
+fn get_fc_font_info(fc: &Fontconfig, name: &str) -> Result<(String, String), &'static str> {
     let cname = CString::new(name).unwrap();
     let family = CString::new("family").unwrap();
     let mut orig_pattern = Pattern::new(fc);
@@ -126,14 +124,18 @@ fn get_fc_font_info(
     let pattern = orig_pattern.font_match();
 
     let actual_name = match pattern.name() {
-        None => { return Err("no matching font name"); },
+        None => {
+            return Err("no matching font name");
+        }
         Some(s) => String::from(s),
     };
     let font_path = match pattern.filename() {
-        None => { return Err("no matching font path"); },
-        Some(s) => String::from(s)
+        None => {
+            return Err("no matching font path");
+        }
+        Some(s) => String::from(s),
     };
-    
+
     Ok((actual_name, font_path))
 }
 
@@ -146,7 +148,7 @@ error messgaes produced (if any).
 fn make_sized_data_for_font(
     fname: &str,
     sizes: &[u16],
-    chars: &[char]
+    chars: &[char],
 ) -> (HashMap<u16, FontData>, Vec<String>) {
     let mut map: HashMap<u16, FontData> = HashMap::new();
     let font_bytes = match std::fs::read(fname) {
@@ -154,50 +156,50 @@ fn make_sized_data_for_font(
         Err(e) => {
             return (
                 map,
-                vec![format!("Unable to open file \"{}\": {}.", fname, &e)]
+                vec![format!("Unable to open file \"{}\": {}.", fname, &e)],
             );
         }
     };
     let mut errs: Vec<String> = Vec::new();
-    
+
     for siz in sizes.iter() {
         match FontData::from_font_bytes(&font_bytes, *siz as f32, chars) {
             Err(e) => {
                 let estr = format!("\"{}\" at size {}: {}", fname, *siz, &e);
                 errs.push(estr);
-            },
+            }
             Ok(res) => {
                 let fd = match res {
                     Ok(fd) => fd,
                     Err((fd, bads)) => {
-                        let estr = format!(
-                            "\"{}\" at size {}: no coverage of {:?}",
-                            fname, *siz, &bads
-                        );
+                        let estr =
+                            format!("\"{}\" at size {}: no coverage of {:?}", fname, *siz, &bads);
                         errs.push(estr);
                         fd
-                    },
+                    }
                 };
                 map.insert(*siz, fd);
-            },
+            }
         }
     }
-    
+
     (map, errs)
 }
 
 fn main() -> Result<(), ErrorShim> {
     let fc = Fontconfig::new().expect("Unable to initialize fontconfig.");
-    
+
     let outfile = match std::env::args().nth(1) {
         None => {
-            println!("No filename specified, using default \"{}\".",
-                    &DEFAULT_OUTFILE);
+            println!(
+                "No filename specified, using default \"{}\".",
+                &DEFAULT_OUTFILE
+            );
             String::from(DEFAULT_OUTFILE)
-        },
+        }
         Some(fname) => fname,
     };
-    
+
     // Will hold the font names specified by the user and the actual font
     // names from the fontconfig match results.
     let mut font_name_pairs: Vec<(String, String)> = Vec::new();
@@ -207,22 +209,24 @@ fn main() -> Result<(), ErrorShim> {
     // Holds all the important data we're generating; will ultimately
     // get serialized.
     let mut main_map: HashMap<String, HashMap<u16, FontData>> = HashMap::new();
-    
+
     for (line_n, line) in std::io::stdin().lock().lines().enumerate() {
         // If there is an error in an input line, just go ahead and die.
         let line = line.unwrap();
-        
+
         // Ignore empty lines.
-        if line.len() == 0 { continue; }
-        
+        if line.is_empty() {
+            continue;
+        }
+
         let (name_str, sizes) = match parse_input_line(&line) {
             Err(e) => {
                 eprintln!("Error in input line {}: {}", &line_n, &e);
                 continue;
-            },
+            }
             Ok((name_str, sizes)) => (name_str, sizes),
         };
-        
+
         let (actual_name, fname) = match get_fc_font_info(&fc, &name_str) {
             Err(e) => {
                 eprintln!(
@@ -230,10 +234,10 @@ fn main() -> Result<(), ErrorShim> {
                     line_n, &name_str, &e
                 );
                 continue;
-            },
+            }
             Ok((name, filename)) => (name, filename),
         };
-        
+
         let (map, mut errs) = make_sized_data_for_font(&fname, &sizes, &chars);
         if map.is_empty() {
             for err in errs.drain(..) {
@@ -252,19 +256,19 @@ fn main() -> Result<(), ErrorShim> {
         main_map.insert(actual_name.clone(), map);
         font_name_pairs.push((name_str, actual_name));
     }
-    
+
     if main_map.is_empty() {
         println!("No useable data generated; no output file written.");
     } else {
-        println!("");
+        println!();
         for (user_name, fc_name) in &font_name_pairs {
             println!("{} <= \"{}\"", fc_name, user_name);
         }
-    
+
         let mut f = File::create(&outfile)?;
         serde_json::to_writer(&mut f, &main_map)?;
         f.flush()?;
     }
-    
+
     Ok(())
 }

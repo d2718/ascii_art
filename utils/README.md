@@ -17,3 +17,12 @@ This program is for generating a library file of font data for use by
 `aa_cgi.rs`. It takes an input like `test/font_list.txt` and produces the
 kind of file that `aa_cgi.rs` looks to load.
 
+# Credits
+
+This crate would not be possible without, and its maintainer is grateful for,
+the heavy lifting provided by
+
+  * ['ab_glyph'](https://crates.io/crates/ab_glyph)
+  * [`fontconfig`](https://crates.io/crates/fontconfig)
+  * [`image`](https://crates.io/crates/image)
+  * and, of course, [`serde`](https://serde.rs)

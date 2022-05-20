@@ -81,16 +81,26 @@ JPEG codec.
 
 The intent is that future releases will include
 
-  * support for dark text on light background ("day mode" text)
+  * ~~support for dark text on light background ("day mode" text)~~
+    done is 0.3.0
   * convenience functions for reading/writing directly from/to
     stdin/stdout and files
 
 and _possibly_
 
-  * a way to auto-detect and use _all_ supported glyphs from a
-    font
+  * a way to auto-detect and use _all_ supported glyphs from a font
   * specification of font sizes in _points_ instead of just pixels
 
 # License
 
 [MIT](https://opensource.org/licenses/MIT)
+
+# Credits
+
+This crate would not be possible without, and its maintainer is grateful for,
+the heavy lifting provided by
+
+  * ['ab_glyph'](https://crates.io/crates/ab_glyph)
+  * [`image`](https://crates.io/crates/image)
+  * and, of course, [`serde`](https://serde.rs)
+  

@@ -117,7 +117,8 @@ to hold the arguments passed from the command line.
     name = "img2ascii",
     version,
     author,
-    about = "Command-line utility to turn image files into ASCII art.")]
+    about = "Command-line utility to turn image files into ASCII art."
+)]
 struct Args {
     /// image path [default: read from stdin]
     #[clap(short, long)]
@@ -134,7 +135,7 @@ struct Args {
     /// font size in pixels
     #[clap(short, long, default_value = "12.0")]
     pixels: f32,
-    
+
     /// target inverted (dark on light) text
     #[clap(short, long)]
     invert: bool,
@@ -203,7 +204,7 @@ fn configure() -> Result<Cfg, ErrorShim> {
     let fc = match Fontconfig::new() {
         Some(fc) => fc,
         None => {
-            let estr = format!("Unable to initialize fontconfig.");
+            let estr = "Unable to initialize fontconfig.".to_owned();
             return Err(ErrorShim(estr));
         }
     };
@@ -237,10 +238,15 @@ fn configure() -> Result<Cfg, ErrorShim> {
         Ok(Ok(fd)) => fd,
         Ok(Err((fd, _))) => fd,
     };
-    
+
     let invert = args.invert;
 
-    Ok(Cfg { source, dest, font, invert })
+    Ok(Cfg {
+        source,
+        dest,
+        font,
+        invert,
+    })
 }
 
 fn main() -> Result<(), ErrorShim> {
@@ -248,12 +254,12 @@ fn main() -> Result<(), ErrorShim> {
 
     let img_reader = BufReader::new(cfg.source);
     let image = Image::auto(img_reader)?;
-    
+
     if cfg.invert {
         ascii_art::write_inverted(&image, &cfg.font, cfg.dest)?;
     } else {
         ascii_art::write(&image, &cfg.font, cfg.dest)?;
     }
-    
+
     Ok(())
 }

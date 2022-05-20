@@ -1,6 +1,6 @@
 [package]
 name = "img2ascii"
-version = "0.2.0"
+version = "0.2.1"
 description = "ASCII art generating command-line filter"
 authors = ["Dan <dx2718@gmail.com>"]
 edition = "2021"

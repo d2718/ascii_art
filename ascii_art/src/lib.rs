@@ -272,6 +272,7 @@ impl From<(char, f32)> for Char {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<(char, f32)> for Char {
     fn into(self) -> (char, f32) {
         (self.chr, self.val)
@@ -301,22 +302,22 @@ impl FontData {
     the returned `FontData` would contain no actual characters, the outer
     `Result` will return an `Err(Error).` If the given font is successfully
     analyzed, the inner `Result` will be returned.
-    
+
     ```
     # use ascii_art::{FontData, printable_ascii};
-    
+
     let chars = printable_ascii();
-    
+
     let not_a_font_file = std::fs::read("test/griffin_sm.jpg").unwrap();
     let result = FontData::from_font_bytes(
         &not_a_font_file,
         12.0,
         &chars
     );
-    
+
     println!("{:?}", &result);
     // Err(InvalidFontData)
-    
+
     let font_file = std::fs::read("test/LiberationMono-Regular.ttf")
         .unwrap();
     let result = FontData::from_font_bytes(
@@ -324,7 +325,7 @@ impl FontData {
         12.0,
         &chars
     );
-    
+
     println!("{:?}", &result)
     // Ok(Ok(FontData { ... }))
     ```
@@ -335,10 +336,10 @@ impl FontData {
     will be an `Err()` containing a tuple with the `FontData` struct as
     well as a `Vec` of the unused `chars`. If all the provided characters
     are used, then this will just be an `Ok(FontData)`.
-    
+
     ```
     # use ascii_art::{FontData, printable_ascii};
-    
+
     let mut chars = printable_ascii();
     // Now we'll add a bunch of characters for which Liberation Mono
     // doesn't have glyph coverage.
@@ -346,7 +347,7 @@ impl FontData {
         let c: char = n.try_into().unwrap();
         chars.push(c);
     }
-    
+
     let font_file = std::fs::read("test/LiberationMono-Regular.ttf")
         .unwrap();
     let inner_result = FontData::from_font_bytes(
@@ -354,7 +355,7 @@ impl FontData {
         12.0,
         &chars
     ).unwrap(); // We're getting the inner result.
-    
+
     println!("{:?}", &inner_result);
     // Err((FontData { ... }, ['ᄀ', 'ᄁ', 'ᄂ', ... ]))
     ```
@@ -386,12 +387,8 @@ impl FontData {
             }
         }
 
-        if charz.is_empty() {
+        if charz.is_empty() || (charz.len() == 1 && charz[0].chr == ' ') {
             return Err(Error::NoUseableGlyphs);
-        } else if charz.len() == 1 {
-            if charz[0].chr == ' ' {
-                return Err(Error::NoUseableGlyphs);
-            }
         }
 
         charz.sort_unstable_by(|a, b| a.cov.partial_cmp(&b.cov).unwrap());
@@ -476,7 +473,7 @@ impl FontData {
 
         self.values[n].chr
     }
-    
+
     /**
     Return the character mapped to for a pixel with intensity `1.0 - val`.
     This is for rendering _dark_ text on a _light_ background, as opposed
@@ -488,12 +485,12 @@ impl FontData {
     pub fn pixel_inv(&self, val: f32) -> char {
         let val = 1.0 - (val + self.fudge_factor);
         let dummy = Char { chr: ' ', val };
-        
+
         let n = match &self.values.binary_search(&dummy) {
             Ok(n) => *n,
             Err(n) => *n,
         };
-        
+
         self.values[n].chr
     }
 
@@ -618,7 +615,7 @@ pub fn write<W: Write>(img: &Image, font: &FontData, writer: W) -> Result<(), Er
                 return Err(Error::IOError(err));
             }
         }
-        if let Err(e) = write!(&mut writer, "\n") {
+        if let Err(e) = writeln!(&mut writer) {
             let err = format!("{}", &e);
             return Err(Error::IOError(err));
         }
@@ -643,11 +640,7 @@ of the original image. Depending on how the text is viewed, characters and
 lines may have different amounts of spacing between them, resulting in
 an imperfect size match.
 */
-pub fn write_inverted<W: Write>(
-    img: &Image,
-    font: &FontData,
-    writer: W
-) -> Result<(), Error> {
+pub fn write_inverted<W: Write>(img: &Image, font: &FontData, writer: W) -> Result<(), Error> {
     let (img_wf, img_hf) = img.geometry();
     let (font_wf, font_hf) = font.geometry();
     let w = (img_wf / font_wf) as u32;
@@ -663,7 +656,7 @@ pub fn write_inverted<W: Write>(
                 return Err(Error::IOError(err));
             }
         }
-        if let Err(e) = write!(&mut writer, "\n") {
+        if let Err(e) = writeln!(&mut writer) {
             let err = format!("{}", &e);
             return Err(Error::IOError(err));
         }
